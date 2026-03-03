@@ -95,3 +95,4 @@ D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\refint\UniDesc.Web.dll
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.pdb
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.genruntimeconfig.cache
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\ref\UniDesc.Web.dll
+D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.sourcelink.json
