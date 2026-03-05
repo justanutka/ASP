@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace UniDesc.Web.Models
 {
@@ -6,11 +7,15 @@ namespace UniDesc.Web.Models
     {
         public int Id { get; set; }
 
-        public required string Title { get; set; }
+        [Required(ErrorMessage = "Tytuł jest wymagany")]
+        [StringLength(60, MinimumLength = 3, ErrorMessage = "Tytuł musi mieć od 3 do 60 znaków")]
+        public string Title { get; set; } = "";
 
-        public required string Description { get; set; }
+        [StringLength(200, ErrorMessage = "Opis może mieć maksymalnie 200 znaków")]
+        public string Description { get; set; } = "";
 
-        public TicketStatus Status { get; set; }
+        [Required(ErrorMessage = "Status jest wymagany")]
+        public TicketStatus Status { get; set; } = TicketStatus.New;
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }

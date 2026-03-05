@@ -2,16 +2,20 @@
 
 <h2>Utwórz Nowe Zgłoszenie</h2>
 
+<div asp-validation-summary="All"></div>
+
 <form asp-action="Create" method="post">
 
     <div>
         <label asp-for="Title">Tytuł</label>
         <input asp-for="Title" />
+        <span asp-validation-for="Title"></span>
     </div>
 
     <div>
         <label asp-for="Description">Opis</label>
         <input asp-for="Description" />
+        <span asp-validation-for="Description"></span>
     </div>
 
     <div>
@@ -21,8 +25,8 @@
             <option value="InProgress">W trakcie</option>
             <option value="Closed">Zamknięte</option>
         </select>
+        <span asp-validation-for="Status"></span>
     </div>
 
-    <button type="submit">Utwórz Zgłoszenie</button>
-
+    <button type="submit">Utwórz zgłoszenie</button>
 </form>
