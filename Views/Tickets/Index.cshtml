@@ -1,10 +1,16 @@
 ﻿@model IEnumerable<UniDesc.Web.Models.Ticket>
+@using UniDesc.Web.Models
 
     <h2>Lista Zgłoszeń</h2>
 
     <p>
         <a asp-action="Create">Dodaj nowe zgłoszenie</a>
     </p>
+
+    <form method="get">
+        <input type="text" name="search" placeholder="Szukaj po tytule..." />
+        <button type="submit">Szukaj</button>
+    </form>
 
     <table>
         <thead>
@@ -13,6 +19,7 @@
                 <th>Opis</th>
                 <th>Status</th>
                 <th>Data Utworzenia</th>
+                <th>Akcje</th>
             </tr>
         </thead>
 
@@ -22,10 +29,32 @@
             <tr>
                 <td>@ticket.Title</td>
                 <td>@ticket.Description</td>
-                <td>@ticket.Status</td>
+
+                <td>
+                    @{
+                        switch (ticket.Status)
+                        {
+                            case TicketStatus.New:
+                        <span style="color:blue">New</span>;
+                                break;
+
+                            case TicketStatus.InProgress:
+                        <span style="color:orange">InProgress</span>;
+                                break;
+
+                            case TicketStatus.Closed:
+                        <span style="color:green">Closed</span>;
+                                break;
+                        }
+                    }
+                </td>
+
                 <td>@ticket.CreatedDate</td>
+
+                <td>
+                    <a asp-action="Details" asp-route-id="@ticket.Id">Szczegóły</a>
+                </td>
             </tr>
         }
         </tbody>
-
     </table>

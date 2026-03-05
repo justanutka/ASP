@@ -41,5 +41,18 @@ namespace UniDesc.Web.Controllers
 
             return RedirectToAction("Index");
         }
+
+        public IActionResult Details(int id)
+        {
+            var ticket = _ticketService.GetAllTickets()
+                .FirstOrDefault(t => t.Id == id);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            return View(ticket);
+        }
     }
 }
