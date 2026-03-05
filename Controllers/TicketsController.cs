@@ -1,12 +1,45 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using UniDesc.Web.Models;
+using UniDesc.Web.Services;
+using Microsoft.AspNetCore.Mvc;
 
-namespace UniDesk.Web.Controllers
+namespace UniDesc.Web.Controllers
 {
     public class TicketsController : Controller
     {
-        public IActionResult Index()
+        private readonly ITicketService _ticketService;
+
+        public TicketsController(ITicketService ticketService)
+        {
+            _ticketService = ticketService;
+        }
+
+        public IActionResult Index(string search)
+        {
+            var tickets = string.IsNullOrEmpty(search)
+                ? _ticketService.GetAllTickets()
+                : _ticketService.GetAllTickets()
+                    .Where(t => t.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            return View(tickets);
+        }
+
+        public IActionResult Create()
         {
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult Create(Ticket ticket)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(ticket);
+            }
+
+            _ticketService.AddTicket(ticket);
+
+            return RedirectToAction("Index");
         }
     }
 }

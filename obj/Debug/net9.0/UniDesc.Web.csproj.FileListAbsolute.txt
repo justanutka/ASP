@@ -15,6 +15,7 @@ D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.csproj.CoreCompileInputs.cac
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.MvcApplicationPartsAssemblyInfo.cache
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.RazorAssemblyInfo.cache
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.RazorAssemblyInfo.cs
+D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.sourcelink.json
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\rjimswa.dswa.cache.json
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\rjsmrazor.dswa.cache.json
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\rjsmcshtml.dswa.cache.json
@@ -89,10 +90,9 @@ D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\staticwebassets.build.json
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\staticwebassets.build.json.cache
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\staticwebassets.development.json
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.dll
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\refint\UniDesc.Web.dll
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.pdb
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.genruntimeconfig.cache
 D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\ref\UniDesc.Web.dll
-D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\UniDesc.Web.sourcelink.json
+D:\ASP\src\UniDesc.Web\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
