@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<ITicketService, InMemoryTicketService>();
 
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 app.UseStaticFiles();
@@ -18,9 +20,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseExceptionHandler();
+
+app.MapControllers();
 
 app.MapStaticAssets();
 app.UseStaticFiles();

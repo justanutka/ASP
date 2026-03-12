@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using UniDesc.Web.Models;
-using UniDesc.Web.Services; 
+using UniDesc.Web.Services;
+using UniDesc.Web.DTOs;
 
 namespace UniDesc.Web.Controllers
 {
@@ -70,6 +71,22 @@ namespace UniDesc.Web.Controllers
             };
 
             return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
+        }
+
+        //PATCH endpoint
+        [HttpPatch("{id}/status")]
+        public IActionResult UpdateTicketStatus(int id, UpdateTicketStatusRequest request)
+        {
+            var ticket = _ticketService.GetTicketById(id);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            ticket.Status = Enum.Parse<TicketStatus>(request.Status, true);
+
+            return NoContent();
         }
     }
 }
