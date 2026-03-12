@@ -49,5 +49,27 @@ namespace UniDesc.Web.Controllers
 
             return Ok(ticketDto);  
         }
+
+        //new ticket
+        [HttpPost]
+        public ActionResult<TicketReadDto> CreateTicket(CreateTicketRequest request)
+        {
+            var ticket = new Ticket
+            {
+                Title = request.Title,
+                Status = Enum.Parse<TicketStatus>(request.Status)
+            };
+
+            _ticketService.AddTicket(ticket);
+
+            var dto = new TicketReadDto
+            {
+                Id = ticket.Id,
+                Title = ticket.Title,
+                Status = ticket.Status.ToString()
+            };
+
+            return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
+        }
     }
 }

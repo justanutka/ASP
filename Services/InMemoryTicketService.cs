@@ -17,14 +17,9 @@ namespace UniDesc.Web.Services
             _tickets.Add(ticket);
         }
 
-        public Ticket GetTicketById(int id)
+        public Ticket? GetTicketById(int id)
         {
-            var ticket = _tickets.FirstOrDefault(t => t.Id == id);
-            if (ticket == null)
-            {
-                throw new KeyNotFoundException("Ticket not found.");
-            }
-            return ticket;
+            return _tickets.FirstOrDefault(t => t.Id == id);
         }
     }
 }

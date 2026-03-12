@@ -1,2 +1,15 @@
 GET http://localhost:5000/api/tickets
 Accept: application/json
+
+### Create ticket
+POST http://localhost:5000/api/tickets
+Content-Type: application/json
+
+{
+  "title": "Concert",
+  "status": "New"
+}
+
+### Get ticket by id
+GET http://localhost:5000/api/tickets/1
+Accept: application/json
