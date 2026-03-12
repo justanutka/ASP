@@ -6,5 +6,7 @@ namespace UniDesc.Web.Services
     {
         List<Ticket> GetAllTickets();  
         void AddTicket(Ticket ticket);
+        Ticket GetTicketById(int id);
     }
+
 }
