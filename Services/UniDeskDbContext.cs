@@ -11,16 +11,33 @@ namespace UniDesc.Web
 		}
 
 		public required  DbSet<Ticket> Tickets { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
-			base.OnModelCreating(modelBuilder);
+            //Fluent API for Ticket
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.Title)
+                .IsRequired()
+                .HasMaxLength(60);
 
-			modelBuilder.Entity<Ticket>()
-				.Property(t => t.Title)
-				.HasMaxLength(60)
-				.IsRequired();
-		}
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.Description)
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.Status)
+                .HasConversion<string>()
+                .IsRequired();
+
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        }
 
         public override int SaveChanges()
         {
@@ -42,5 +59,6 @@ namespace UniDesc.Web
 
             return base.SaveChanges();
         }
+
     }
 }

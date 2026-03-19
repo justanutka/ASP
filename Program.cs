@@ -17,7 +17,9 @@ if (string.IsNullOrEmpty(connectionString))
 }
 
 builder.Services.AddDbContext<UniDeskDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseSqlite(connectionString)
+           .EnableSensitiveDataLogging() 
+           .LogTo(Console.WriteLine, LogLevel.Information)); 
 
 var app = builder.Build();
 

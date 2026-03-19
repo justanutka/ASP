@@ -29,3 +29,14 @@ Folder zawiera pliki widoków, które są renderowane i wyświetlane użytkownik
 
 ### **wwwroot**
 Folder zawierający zasoby statyczne, takie jak pliki CSS, JavaScript, obrazy, które są dostępne publicznie w aplikacji
+
+
+## Techniczne notatki: Separacja modeli
+
+Rozdzielenie modeli w aplikacjach jest ważnym elementem dobrego projektowania architektury systemu. W przypadku Entity Framework (EF) i modelu domenowego, warto rozdzielić te dwa modele z kilku powodów:
+
+1. **Model danych (Entity Framework)** jest bezpośrednio połączony z bazą danych i zawiera informacje, które są związane z technologią bazy danych. Ma szczegóły dotyczące kluczy głównych, indeksów i innych reguł potrzebnych do pracy z bazą danych.
+   
+2. **Model domenowy** (model biznesowy) jest niezależny od technologii bazy danych i reprezentuje logikę aplikacji. Jest bardziej elastyczny, ponieważ nie zależy od struktury bazy danych, co pozwala łatwiej wdrażać i testować logikę aplikacji.
+
+Podsumowując, rozdzielenie modeli sprawia, że aplikacja jest bardziej elastyczna i łatwiejsza do zarządzania w dłuższej perspektywie
