@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UniDesc.Web;
 
@@ -10,9 +11,10 @@ using UniDesc.Web;
 namespace UniDesc.Web.Migrations
 {
     [DbContext(typeof(UniDeskDbContext))]
-    partial class UniDeskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319131745_AddCreatedAtAndUpdatedAt")]
+    partial class AddCreatedAtAndUpdatedAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");

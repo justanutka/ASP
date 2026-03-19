@@ -55,40 +55,67 @@ namespace UniDesc.Web.Controllers
         [HttpPost]
         public ActionResult<TicketReadDto> CreateTicket(CreateTicketRequest request)
         {
-            var ticket = new Ticket
+            if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Status))
             {
-                Title = request.Title,
-                Status = Enum.Parse<TicketStatus>(request.Status)
-            };
+                return BadRequest("Title and Status are required.");
+            }
 
-            _context.Tickets.Add(ticket);
-            _context.SaveChanges();  
-
-            var dto = new TicketReadDto
+            try
             {
-                Id = ticket.Id,
-                Title = ticket.Title,
-                Status = ticket.Status.ToString()
-            };
+                var ticket = new Ticket
+                {
+                    Title = request.Title,
+                    Status = Enum.Parse<TicketStatus>(request.Status),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-            return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
+                _context.Tickets.Add(ticket);
+                _context.SaveChanges();
+
+                var dto = new TicketReadDto
+                {
+                    Id = ticket.Id,
+                    Title = ticket.Title,
+                    Status = ticket.Status.ToString()
+                };
+
+                return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
+            }
         }
 
         // PATCH: api/tickets/{id}/status
         [HttpPatch("{id}/status")]
         public IActionResult UpdateTicketStatus(int id, UpdateTicketStatusRequest request)
         {
-            var ticket = _context.Tickets.Find(id);
-
-            if (ticket == null)
+            if (string.IsNullOrEmpty(request.Status))
             {
-                return NotFound();
+                return BadRequest("Status is required.");
             }
 
-            ticket.Status = Enum.Parse<TicketStatus>(request.Status, true);
-            _context.SaveChanges();
+            try
+            {
+                var ticket = _context.Tickets.Find(id);
 
-            return NoContent();
+                if (ticket == null)
+                {
+                    return NotFound();
+                }
+
+                ticket.Status = Enum.Parse<TicketStatus>(request.Status, true);
+                ticket.UpdatedAt = DateTime.UtcNow;
+                _context.SaveChanges();
+
+                return NoContent();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
+            }
         }
     }
 }

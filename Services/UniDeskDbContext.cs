@@ -21,5 +21,26 @@ namespace UniDesc.Web
 				.HasMaxLength(60)
 				.IsRequired();
 		}
-	}
+
+        public override int SaveChanges()
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.Entity is Ticket ticket)
+                {
+                    if (entry.State == EntityState.Added)
+                    {
+                        ticket.CreatedAt = DateTime.UtcNow;
+                    }
+
+                    if (entry.State == EntityState.Modified)
+                    {
+                        ticket.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+            }
+
+            return base.SaveChanges();
+        }
+    }
 }

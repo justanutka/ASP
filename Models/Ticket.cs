@@ -18,6 +18,8 @@ namespace UniDesc.Web.Models
         public TicketStatus Status { get; set; } = TicketStatus.New;
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
     }
 
     public enum TicketStatus
