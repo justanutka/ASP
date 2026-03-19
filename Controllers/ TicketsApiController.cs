@@ -1,26 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
 using UniDesc.Web.Models;
-using UniDesc.Web.Services;
 using UniDesc.Web.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace UniDesc.Web.Controllers
 {
-    [ApiController]  
-    [Route("api/tickets")] 
+    [ApiController]
+    [Route("api/tickets")]
     public class TicketsApiController : ControllerBase
     {
-        private readonly ITicketService _ticketService;
+        private readonly UniDeskDbContext _context;
 
-        public TicketsApiController(ITicketService ticketService)
+        public TicketsApiController(UniDeskDbContext context)
         {
-            _ticketService = ticketService;
+            _context = context;
         }
 
         // GET: api/tickets
         [HttpGet]
         public ActionResult<IEnumerable<TicketReadDto>> GetAllTickets()
         {
-            var tickets = _ticketService.GetAllTickets();
+            var tickets = _context.Tickets.ToList();
             var ticketDtos = tickets.Select(t => new TicketReadDto
             {
                 Id = t.Id,
@@ -28,17 +28,17 @@ namespace UniDesc.Web.Controllers
                 Status = t.Status.ToString()
             });
 
-            return Ok(ticketDtos);  
+            return Ok(ticketDtos);
         }
 
         // GET: api/tickets/5
         [HttpGet("{id}")]
         public ActionResult<TicketReadDto> GetTicketById(int id)
         {
-            var ticket = _ticketService.GetTicketById(id);
+            var ticket = _context.Tickets.Find(id);
             if (ticket == null)
             {
-                return NotFound();  
+                return NotFound();
             }
 
             var ticketDto = new TicketReadDto
@@ -48,10 +48,10 @@ namespace UniDesc.Web.Controllers
                 Status = ticket.Status.ToString()
             };
 
-            return Ok(ticketDto);  
+            return Ok(ticketDto);
         }
 
-        //new ticket
+        // POST: api/tickets
         [HttpPost]
         public ActionResult<TicketReadDto> CreateTicket(CreateTicketRequest request)
         {
@@ -61,7 +61,8 @@ namespace UniDesc.Web.Controllers
                 Status = Enum.Parse<TicketStatus>(request.Status)
             };
 
-            _ticketService.AddTicket(ticket);
+            _context.Tickets.Add(ticket);
+            _context.SaveChanges();  
 
             var dto = new TicketReadDto
             {
@@ -73,11 +74,11 @@ namespace UniDesc.Web.Controllers
             return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
         }
 
-        //PATCH endpoint
+        // PATCH: api/tickets/{id}/status
         [HttpPatch("{id}/status")]
         public IActionResult UpdateTicketStatus(int id, UpdateTicketStatusRequest request)
         {
-            var ticket = _ticketService.GetTicketById(id);
+            var ticket = _context.Tickets.Find(id);
 
             if (ticket == null)
             {
@@ -85,6 +86,7 @@ namespace UniDesc.Web.Controllers
             }
 
             ticket.Status = Enum.Parse<TicketStatus>(request.Status, true);
+            _context.SaveChanges();
 
             return NoContent();
         }
