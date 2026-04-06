@@ -58,22 +58,38 @@ namespace UniDesc.Web.Services
                 }
             }
 
+            var allowedSortFields = new[] { "createdat", "title", "status" };
+
             var sortBy = queryParams.SortBy?.Trim().ToLower();
             var sortDirection = queryParams.SortDirection?.Trim().ToLower();
 
-            if (sortBy == "createdat" || string.IsNullOrEmpty(sortBy))
+            if (string.IsNullOrEmpty(sortBy))
             {
-                query = sortDirection == "desc"
-                    ? query.OrderByDescending(t => t.CreatedAt)
-                    : query.OrderBy(t => t.CreatedAt);
+                sortBy = "createdat";
             }
-            else
+
+            if (!allowedSortFields.Contains(sortBy))
             {
                 throw new ArgumentException(
-                    $"Niepoprawna wartość sortowania: {queryParams.SortBy}",
+                    $"Sortowanie po polu '{queryParams.SortBy}' nie jest dozwolone.",
                     nameof(queryParams.SortBy)
                 );
             }
+
+            query = sortBy switch
+            {
+                "title" => sortDirection == "desc"
+                    ? query.OrderByDescending(t => t.Title)
+                    : query.OrderBy(t => t.Title),
+
+                "status" => sortDirection == "desc"
+                    ? query.OrderByDescending(t => t.Status)
+                    : query.OrderBy(t => t.Status),
+
+                _ => sortDirection == "desc"
+                    ? query.OrderByDescending(t => t.CreatedAt)
+                    : query.OrderBy(t => t.CreatedAt)
+            };
 
             int totalCount = query.Count();
 

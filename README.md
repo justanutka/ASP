@@ -40,3 +40,15 @@ Rozdzielenie modeli w aplikacjach jest ważnym elementem dobrego projektowania a
 2. **Model domenowy** (model biznesowy) jest niezależny od technologii bazy danych i reprezentuje logikę aplikacji. Jest bardziej elastyczny, ponieważ nie zależy od struktury bazy danych, co pozwala łatwiej wdrażać i testować logikę aplikacji.
 
 Podsumowując, rozdzielenie modeli sprawia, że aplikacja jest bardziej elastyczna i łatwiejsza do zarządzania w dłuższej perspektywie
+
+
+## Notatka techniczna lab 5 
+W części AMBITNE zastosowano mechanizm whitelisty pól dozwolonych do sortowania. Oznacza to, że system akceptuje jedynie ściśle określone wartości parametru SortBy, a wszystkie pozostałe są odrzucane. W aktualnej implementacji dozwolone są tylko pola: CreatedAt, Title oraz Status.
+
+Takie rozwiązanie zostało wprowadzone ze względów bezpieczeństwa, stabilności oraz czytelności kontraktu API. Przyjmowanie surowego string jako nazwy pola do sortowania byłoby zbyt elastyczne i mogłoby prowadzić do niepożądanych skutków. Użytkownik mógłby próbować sortować po polach, które nie są przewidziane w publicznym API, na przykład po polach technicznych, pomocniczych lub wewnętrznych. W praktyce zwiększa to ryzyko ujawnienia struktury modelu danych (Information Disclosure), ponieważ sam fakt istnienia lub braku danego pola może dostarczać informacji o wewnętrznej budowie encji i logice systemu.
+
+Dodatkowo zbyt ogólny mechanizm sortowania utrudnia kontrolę poprawności działania aplikacji. Pozwala przekazywać wartości, których system nie powinien obsługiwać, co może prowadzić do błędów wykonania, nieprzewidywalnych rezultatów lub konieczności rozbudowy kodu o dodatkowe zabezpieczenia. Z punktu widzenia utrzymania projektu bardziej przewidywalne i bezpieczne jest jawne określenie listy pól, po których wolno sortować dane.
+
+Zastosowana whitelist zapewnia, że system działa w sposób kontrolowany i zgodny z założeniami projektowymi. Jeśli użytkownik poda niedozwoloną wartość, aplikacja nie próbuje wykonywać takiego sortowania, lecz zwraca błąd 400 Bad Request. Dzięki temu mechanizm jest odporny na nieautoryzowane lub błędne parametry wejściowe.
+
+Takie podejście jest prostsze i bezpieczniejsze niż budowanie całkowicie uniwersalnego mechanizmu sortowania. Whitelist ogranicza możliwe operacje tylko do tych, które zostały wcześniej zaprojektowane, przetestowane i zaakceptowane. W efekcie poprawia bezpieczeństwo aplikacji, zmniejsza ryzyko błędów oraz ułatwia dalszy rozwój systemu.
