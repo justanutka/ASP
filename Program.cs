@@ -6,7 +6,7 @@ using UniDesc.Web;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<ITicketService, InMemoryTicketService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 
 builder.Services.AddProblemDetails();
 
@@ -18,8 +18,8 @@ if (string.IsNullOrEmpty(connectionString))
 
 builder.Services.AddDbContext<UniDeskDbContext>(options =>
     options.UseSqlite(connectionString)
-           .EnableSensitiveDataLogging() 
-           .LogTo(Console.WriteLine, LogLevel.Information)); 
+           .EnableSensitiveDataLogging()
+           .LogTo(Console.WriteLine, LogLevel.Information));
 
 var app = builder.Build();
 

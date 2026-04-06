@@ -13,13 +13,17 @@ namespace UniDesc.Web.Controllers
             _ticketService = ticketService;
         }
 
-        public IActionResult Index(string search)
+        public IActionResult Index(string? status, string? sortBy, int page = 1, int pageSize = 10)
         {
-            var tickets = string.IsNullOrEmpty(search)
-                ? _ticketService.GetAllTickets()
-                : _ticketService.GetAllTickets()
-                    .Where(t => t.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+            var queryParams = new TicketQueryParameters
+            {
+                Status = status,
+                SortBy = sortBy,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            var tickets = _ticketService.GetTickets(queryParams).ToList();
 
             return View(tickets);
         }
