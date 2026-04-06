@@ -39,7 +39,7 @@ namespace UniDesc.Web.Services
             }
         }
 
-        public System.Linq.IQueryable<UniDesc.Web.DTOs.TicketListDto> GetTickets(TicketQueryParameters queryParams)
+        public PagedResult<TicketListDto> GetTickets(TicketQueryParameters queryParams)
         {
             var query = _context.Tickets.AsQueryable();
 
@@ -75,17 +75,27 @@ namespace UniDesc.Web.Services
                 );
             }
 
+            int totalCount = query.Count();
+
             int page = queryParams.Page < 1 ? 1 : queryParams.Page;
             int pageSize = queryParams.PageSize < 1 ? 10 : queryParams.PageSize;
 
-            query = query.Skip((page - 1) * pageSize).Take(pageSize);
+            var items = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(t => new TicketListDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Status = t.Status.ToString()
+                })
+                .ToList();
 
-            return query.Select(t => new UniDesc.Web.DTOs.TicketListDto
+            return new PagedResult<TicketListDto>
             {
-                Id = t.Id,
-                Title = t.Title,
-                Status = t.Status.ToString()
-            });
+                TotalCount = totalCount,
+                Items = items
+            };
         }
     }
 }

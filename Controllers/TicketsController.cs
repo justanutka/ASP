@@ -13,19 +13,20 @@ namespace UniDesc.Web.Controllers
             _ticketService = ticketService;
         }
 
-        public IActionResult Index(string? status, string? sortBy, int page = 1, int pageSize = 10)
+        public IActionResult Index(string? status, string? sortBy, string? sortDirection, int page = 1, int pageSize = 10)
         {
             var queryParams = new TicketQueryParameters
             {
                 Status = status,
                 SortBy = sortBy,
+                SortDirection = sortDirection,
                 Page = page,
                 PageSize = pageSize
             };
 
-            var tickets = _ticketService.GetTickets(queryParams).ToList();
+            var result = _ticketService.GetTickets(queryParams);
 
-            return View(tickets);
+            return View(result.Items);
         }
 
         public IActionResult Create()

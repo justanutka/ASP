@@ -133,12 +133,12 @@ namespace UniDesc.Web.Controllers
 
         // GET: api/tickets/search
         [HttpGet("search")]
-        public ActionResult<IEnumerable<TicketListDto>> GetTickets([FromQuery] TicketQueryParameters queryParams)
+        public ActionResult<PagedResult<TicketListDto>> GetTickets([FromQuery] TicketQueryParameters queryParams)
         {
             try
             {
-                var tickets = _ticketService.GetTickets(queryParams).ToList();
-                return Ok(tickets);
+                var result = _ticketService.GetTickets(queryParams);
+                return Ok(result);
             }
             catch (ArgumentException ex)
             {

@@ -8,6 +8,6 @@ namespace UniDesc.Web.Services
         void AddTicket(Ticket ticket);
         Ticket? GetTicketById(int id);
         void UpdateTicketStatus(int id, TicketStatus status);
-        System.Linq.IQueryable<UniDesc.Web.DTOs.TicketListDto> GetTickets(TicketQueryParameters queryParams);
+        PagedResult<UniDesc.Web.DTOs.TicketListDto> GetTickets(TicketQueryParameters queryParams);
     }
 }
