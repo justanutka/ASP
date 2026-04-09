@@ -1,0 +1,12 @@
+﻿@model UniDesc.Web.Models.Ticket
+
+<h2>Szczegóły zgłoszenia</h2>
+
+<div>
+    <p><strong>Tytuł:</strong> @Model.Title</p>
+    <p><strong>Opis:</strong> @Model.Description</p>
+    <p><strong>Status:</strong> @Model.Status</p>
+    <p><strong>Data:</strong> @Model.CreatedDate</p>
+</div>
+
+<a asp-action="Index">Powrót do listy</a>
