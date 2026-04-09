@@ -52,3 +52,15 @@ Dodatkowo zbyt ogólny mechanizm sortowania utrudnia kontrolę poprawności dzia
 Zastosowana whitelist zapewnia, że system działa w sposób kontrolowany i zgodny z założeniami projektowymi. Jeśli użytkownik poda niedozwoloną wartość, aplikacja nie próbuje wykonywać takiego sortowania, lecz zwraca błąd 400 Bad Request. Dzięki temu mechanizm jest odporny na nieautoryzowane lub błędne parametry wejściowe.
 
 Takie podejście jest prostsze i bezpieczniejsze niż budowanie całkowicie uniwersalnego mechanizmu sortowania. Whitelist ogranicza możliwe operacje tylko do tych, które zostały wcześniej zaprojektowane, przetestowane i zaakceptowane. W efekcie poprawia bezpieczeństwo aplikacji, zmniejsza ryzyko błędów oraz ułatwia dalszy rozwój systemu.
+
+## Notatka techniczna lab 6 
+W modelu Ticket używane są DateTime.Now oraz DateTime.UtcNow, co powoduje niedeterministyczne testy.
+
+Nie zmieniałam istniejącego kodu, aby nie zepsuć wcześniejszych zadań
+
+Zamiast tego wprowadzono:
+- interfejs ISystemClock, który definiuje sposób pobierania aktualnego czasu. Dzięki temu logika biznesowa nie musi bezpośrednio korzystać z DateTime.Now
+- jego implementację SystemClock, klasa która jest implementacją interfejsu i zwraca rzeczywisty czas systemowy DateTime.Now
+- możliwość użycia FakeClock w testach, pozwala ustawić stałą, kontrolowaną wartość czasu
+
+Pozwala to w przyszłości łatwo kontrolować czas i poprawić testowalność systemu.

@@ -6,6 +6,10 @@ using Xunit;
 
 namespace UniDesk.UnitTests.Models
 {
+    class FakeClock : ISystemClock
+    {
+        public DateTime Now { get; set; }
+    }
     public class TicketTests
     {
         [Fact]
@@ -15,6 +19,17 @@ namespace UniDesk.UnitTests.Models
 
             Assert.Equal(TicketStatus.New, ticket.Status);
             Assert.NotEqual(default(DateTime), ticket.CreatedAt);
+        }
+
+        [Fact]
+        public void FakeClock_ShouldReturnFixedTime()
+        {
+            var fakeClock = new FakeClock
+            {
+                Now = new DateTime(2024, 1, 1)
+            };
+
+            Assert.Equal(new DateTime(2024, 1, 1), fakeClock.Now);
         }
     }
 }
