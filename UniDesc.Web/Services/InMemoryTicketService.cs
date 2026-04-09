@@ -27,10 +27,18 @@ namespace UniDesc.Web.Services
         public void UpdateTicketStatus(int id, TicketStatus status)
         {
             var ticket = _tickets.FirstOrDefault(t => t.Id == id);
-            if (ticket != null)
+
+            if (ticket == null)
             {
-                ticket.Status = status;
+                throw new InvalidOperationException("Ticket not found.");
             }
+
+            if (ticket.Status == TicketStatus.Closed && status == TicketStatus.Closed)
+            {
+                throw new InvalidOperationException("Ticket is already closed.");
+            }
+
+            ticket.Status = status;
         }
 
         //GetTickets
