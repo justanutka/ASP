@@ -119,7 +119,14 @@ namespace UniDesc.Web.Controllers
                 ticket.UpdatedAt = DateTime.UtcNow;
                 _context.SaveChanges();
 
-                return NoContent();
+                var dto = new TicketReadDto
+                {
+                    Id = ticket.Id,
+                    Title = ticket.Title,
+                    Status = ticket.Status.ToString()
+                };
+
+                return Ok(dto);
             }
             catch (DbUpdateException ex)
             {

@@ -14,4 +14,19 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Remove="UniDesc.Web\**\*.cs" />
+		<Compile Remove="TestProjectUniDesk\**\*.cs" />
+		<Compile Remove="UniDesk\**\*.cs" />
+		<Content Remove="UniDesc.Web\**" />
+		<Content Remove="TestProjectUniDesk\**" />
+		<Content Remove="UniDesk\**" />
+		<EmbeddedResource Remove="UniDesc.Web\**" />
+		<EmbeddedResource Remove="TestProjectUniDesk\**" />
+		<EmbeddedResource Remove="UniDesk\**" />
+		<None Remove="UniDesc.Web\**" />
+		<None Remove="TestProjectUniDesk\**" />
+		<None Remove="UniDesk\**" />
+	</ItemGroup>
+
 </Project>
