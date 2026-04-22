@@ -8,6 +8,7 @@ namespace UniDesc.Web.Controllers
 {
     [ApiController]
     [Route("api/tickets")]
+    [Tags("Tickets")]
     public class TicketsApiController : ControllerBase
     {
         private readonly UniDeskDbContext _context;
