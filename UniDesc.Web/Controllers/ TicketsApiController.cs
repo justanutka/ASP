@@ -21,6 +21,7 @@ namespace UniDesc.Web.Controllers
 
         // GET: api/tickets
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<TicketReadDto>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<TicketReadDto>> GetAllTickets()
         {
             var tickets = _context.Tickets.ToList();
@@ -37,6 +38,8 @@ namespace UniDesc.Web.Controllers
 
         // GET: api/tickets/5
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(TicketReadDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<TicketReadDto> GetTicketById(int id)
         {
             var ticket = _context.Tickets.Find(id);
@@ -58,11 +61,19 @@ namespace UniDesc.Web.Controllers
 
         // POST: api/tickets
         [HttpPost]
-        public ActionResult<TicketReadDto> CreateTicket(CreateTicketRequest request)
+        [ProducesResponseType(typeof(TicketReadDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public ActionResult<TicketReadDto> CreateTicket([FromBody] CreateTicketRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Status))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Title and Status are required.");
+                return ValidationProblem(ModelState);
+            }
+
+            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var parsedStatus))
+            {
+                ModelState.AddModelError(nameof(request.Status), "Invalid status value.");
+                return ValidationProblem(ModelState);
             }
 
             try
@@ -70,7 +81,7 @@ namespace UniDesc.Web.Controllers
                 var ticket = new Ticket
                 {
                     Title = request.Title,
-                    Status = Enum.Parse<TicketStatus>(request.Status, true),
+                    Status = parsedStatus,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -91,19 +102,30 @@ namespace UniDesc.Web.Controllers
             {
                 return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
             }
-            catch (ArgumentException)
-            {
-                return BadRequest("Invalid status value.");
-            }
         }
 
         // PATCH: api/tickets/{id}/status
         [HttpPatch("{id}/status")]
-        public IActionResult UpdateTicketStatus(int id, UpdateTicketStatusRequest request)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateTicketStatus(int id, [FromBody] UpdateTicketStatusRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
             if (string.IsNullOrWhiteSpace(request.Status))
             {
-                return BadRequest("Status is required.");
+                ModelState.AddModelError(nameof(request.Status), "Status is required.");
+                return ValidationProblem(ModelState);
+            }
+
+            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var parsedStatus))
+            {
+                ModelState.AddModelError(nameof(request.Status), "Invalid status value.");
+                return ValidationProblem(ModelState);
             }
 
             try
@@ -115,7 +137,7 @@ namespace UniDesc.Web.Controllers
                     return NotFound();
                 }
 
-                ticket.Status = Enum.Parse<TicketStatus>(request.Status, true);
+                ticket.Status = parsedStatus;
                 ticket.UpdatedAt = DateTime.UtcNow;
                 _context.SaveChanges();
 
@@ -125,14 +147,12 @@ namespace UniDesc.Web.Controllers
             {
                 return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
             }
-            catch (ArgumentException)
-            {
-                return BadRequest("Invalid status value.");
-            }
         }
 
         // GET: api/tickets/search
         [HttpGet("search")]
+        [ProducesResponseType(typeof(PagedResult<TicketListDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public ActionResult<PagedResult<TicketListDto>> GetTickets([FromQuery] TicketQueryParameters queryParams)
         {
             try
@@ -142,7 +162,8 @@ namespace UniDesc.Web.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                ModelState.AddModelError("queryParams", ex.Message);
+                return ValidationProblem(ModelState);
             }
         }
     }

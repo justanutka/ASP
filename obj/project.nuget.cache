@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "cG3Edb5pgMo=",
+  "dgSpecHash": "Vw+x1IifvGc=",
   "success": true,
-  "projectFilePath": "D:\\ASP\\src\\UniDesc.Web\\UniDesc.Web.csproj",
+  "projectFilePath": "D:\\ASP\\src\\UniDesc.Web.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Hania\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\Hania\\.nuget\\packages\\microsoft.data.sqlite.core\\6.0.0\\microsoft.data.sqlite.core.6.0.0.nupkg.sha512",

@@ -1,9 +1,11 @@
+### Get all tickets
 GET http://localhost:5000/api/tickets
 Accept: application/json
 
-### Create ticket
+### Create valid ticket
 POST http://localhost:5000/api/tickets
 Content-Type: application/json
+Accept: application/json
 
 {
   "title": "Concert",
@@ -17,15 +19,31 @@ Accept: application/json
 ### Update status
 PATCH http://localhost:5000/api/tickets/1/status
 Content-Type: application/json
+Accept: application/json
 
 {
- "status": "Closed"
+  "status": "Closed"
 }
 
-### Test HTTP redirect
-GET http://localhost:5000/api/tickets
+### Get missing ticket
+GET http://localhost:5000/api/tickets/99999
 Accept: application/json
 
-### Test ProblemDetails
-GET http://localhost:5000/api/tickets/999
+### Create invalid ticket
+POST http://localhost:5000/api/tickets
+Content-Type: application/json
 Accept: application/json
+
+{
+  "title": "",
+  "status": ""
+}
+
+### Update status with invalid value
+PATCH http://localhost:5000/api/tickets/1/status
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": ""
+}
