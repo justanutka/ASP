@@ -64,3 +64,15 @@ Zamiast tego wprowadzono:
 - możliwość użycia FakeClock w testach, pozwala ustawić stałą, kontrolowaną wartość czasu
 
 Pozwala to w przyszłości łatwo kontrolować czas i poprawić testowalność systemu.
+
+
+## Notatka techniczna lab 8 - AMBITME
+
+### Co framework zapewnia automatycznie
+ASP.NET Core automatycznie wspiera serializację JSON, model binding, walidację modeli, obsługę kontrolerów oraz generowanie dokumentacji Swagger/OpenAPI. Framework pomaga również w zwracaniu ustandaryzowanych odpowiedzi błędów, takich jak ProblemDetails, dzięki czemu komunikacja API jest bardziej spójna.
+
+### Co nadal wymaga decyzji programisty
+Programista nadal musi sam zdecydować, jakie kody HTTP są poprawne, które odpowiedzi powinny być jawnie opisane oraz w jakich miejscach 404 Not Found powinno być częścią kontraktu API. To programista wybiera również DTO wystawiane na zewnątrz i odpowiada za to, czy wygenerowana dokumentacja rzeczywiście odzwierciedla zamierzony kontrakt systemu.
+
+### Notatka inżynierska
+Framework bardzo pomaga, ale nie projektuje kontraktu API za programistę. Jeżeli metadata są niepełne albo semantyka odpowiedzi została źle dobrana, Swagger nadal pokaże dokumentację, ale nie musi ona w pełni odpowiadać temu, co rzeczywiście chcieliśmy wystawić.
