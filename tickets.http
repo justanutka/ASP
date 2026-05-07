@@ -1,31 +1,92 @@
-GET http://localhost:5000/api/tickets
+@baseUrl = https://localhost:54618
+
+### Get all tickets
+GET {{baseUrl}}/api/tickets
 Accept: application/json
 
-### Create ticket
-POST http://localhost:5000/api/tickets
+
+### Create valid ticket
+POST {{baseUrl}}/api/tickets
 Content-Type: application/json
+Accept: application/json
 
 {
   "title": "Concert",
   "status": "New"
 }
 
-### Get ticket by id
-GET http://localhost:5000/api/tickets/1
-Accept: application/json
 
-### Update status
-PATCH http://localhost:5000/api/tickets/1/status
+### Create invalid ticket - empty title
+POST {{baseUrl}}/api/tickets
 Content-Type: application/json
+Accept: application/json
 
 {
- "status": "Closed"
+  "title": "",
+  "status": "New"
 }
 
-### Test HTTP redirect
-GET http://localhost:5000/api/tickets
+
+### Create invalid ticket
+POST {{baseUrl}}/api/tickets
+Content-Type: application/json
 Accept: application/json
 
-### Test ProblemDetails
-GET http://localhost:5000/api/tickets/999
+{
+  "title": "A",
+  "status": "New"
+}
+
+
+### wrong status
+POST {{baseUrl}}/api/tickets
+Content-Type: application/json
 Accept: application/json
+
+{
+  "title": "Invalid status test",
+  "status": "WrongStatus"
+}
+
+
+### Get ticket by id
+GET {{baseUrl}}/api/tickets/1
+Accept: application/json
+
+
+### should return 404
+GET {{baseUrl}}/api/tickets/999
+Accept: application/json
+
+
+### Update status - valid
+PATCH {{baseUrl}}/api/tickets/1/status
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": "Closed"
+}
+
+
+### invalid empty status
+PATCH {{baseUrl}}/api/tickets/1/status
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": ""
+}
+
+
+### Check response headers
+GET {{baseUrl}}/Tickets
+Accept: text/html
+
+
+### Negative CSRF check 
+POST {{baseUrl}}/Tickets/Create
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html
+
+Title=CSRF%20test&Description=Request%20without%20token&Status=New

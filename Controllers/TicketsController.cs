@@ -15,18 +15,46 @@ namespace UniDesc.Web.Controllers
 
         public IActionResult Index(string? status, string? sortBy, string? sortDirection, int page = 1, int pageSize = 10)
         {
-            var queryParams = new TicketQueryParameters
+            var tickets = _ticketService.GetAllTickets().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(status))
             {
-                Status = status,
-                SortBy = sortBy,
-                SortDirection = sortDirection,
-                Page = page,
-                PageSize = pageSize
+                if (Enum.TryParse<TicketStatus>(status, true, out var parsedStatus))
+                {
+                    tickets = tickets.Where(t => t.Status == parsedStatus);
+                }
+                else
+                {
+                    ModelState.AddModelError("Status", "Niepoprawny status.");
+                }
+            }
+
+            sortBy = sortBy?.ToLower();
+            sortDirection = sortDirection?.ToLower();
+
+            tickets = sortBy switch
+            {
+                "title" => sortDirection == "desc"
+                    ? tickets.OrderByDescending(t => t.Title)
+                    : tickets.OrderBy(t => t.Title),
+
+                "status" => sortDirection == "desc"
+                    ? tickets.OrderByDescending(t => t.Status)
+                    : tickets.OrderBy(t => t.Status),
+
+                "createdat" => sortDirection == "desc"
+                    ? tickets.OrderByDescending(t => t.CreatedAt)
+                    : tickets.OrderBy(t => t.CreatedAt),
+
+                _ => tickets.OrderBy(t => t.CreatedAt)
             };
 
-            var result = _ticketService.GetTickets(queryParams);
+            var result = tickets
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            return View(result.Items);
+            return View(result);
         }
 
         public IActionResult Create()
@@ -35,6 +63,7 @@ namespace UniDesc.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Ticket ticket)
         {
             if (!ModelState.IsValid)

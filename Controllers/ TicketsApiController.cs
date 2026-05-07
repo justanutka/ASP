@@ -60,9 +60,15 @@ namespace UniDesc.Web.Controllers
         [HttpPost]
         public ActionResult<TicketReadDto> CreateTicket(CreateTicketRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Status))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Title and Status are required.");
+                return ValidationProblem(ModelState);
+            }
+
+            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var parsedStatus))
+            {
+                ModelState.AddModelError(nameof(request.Status), "Invalid status value.");
+                return ValidationProblem(ModelState);
             }
 
             try
@@ -70,7 +76,7 @@ namespace UniDesc.Web.Controllers
                 var ticket = new Ticket
                 {
                     Title = request.Title,
-                    Status = Enum.Parse<TicketStatus>(request.Status, true),
+                    Status = parsedStatus,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -91,19 +97,21 @@ namespace UniDesc.Web.Controllers
             {
                 return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
             }
-            catch (ArgumentException)
-            {
-                return BadRequest("Invalid status value.");
-            }
         }
 
         // PATCH: api/tickets/{id}/status
         [HttpPatch("{id}/status")]
         public IActionResult UpdateTicketStatus(int id, UpdateTicketStatusRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Status))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Status is required.");
+                return ValidationProblem(ModelState);
+            }
+
+            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var parsedStatus))
+            {
+                ModelState.AddModelError(nameof(request.Status), "Invalid status value.");
+                return ValidationProblem(ModelState);
             }
 
             try
@@ -115,7 +123,7 @@ namespace UniDesc.Web.Controllers
                     return NotFound();
                 }
 
-                ticket.Status = Enum.Parse<TicketStatus>(request.Status, true);
+                ticket.Status = parsedStatus;
                 ticket.UpdatedAt = DateTime.UtcNow;
                 _context.SaveChanges();
 
@@ -131,10 +139,6 @@ namespace UniDesc.Web.Controllers
             catch (DbUpdateException ex)
             {
                 return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
-            }
-            catch (ArgumentException)
-            {
-                return BadRequest("Invalid status value.");
             }
         }
 

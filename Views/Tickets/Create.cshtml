@@ -2,7 +2,7 @@
 
 <h2>Utwórz Nowe Zgłoszenie</h2>
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" asp-antiforgery="true">
 
     <div>
         <label asp-for="Title">Tytuł</label>
@@ -28,3 +28,7 @@
 
     <button type="submit">Utwórz zgłoszenie</button>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
