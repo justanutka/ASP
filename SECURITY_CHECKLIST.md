@@ -28,3 +28,35 @@ Przykłady:
 - zbyt krótki tytuł,
 - niepoprawny status,
 - POST formularza bez tokenu CSRF.
+
+---
+
+# LAB 9 AMBITNE
+
+## 1. Czego jeszcze nie robimy w tym kursie
+
+W LAB 9 dodaliśmy podstawowe zabezpieczenia aplikacji UniDesk.
+Aplikacja sprawdza dane wejściowe, formularz tworzenia zgłoszenia ma token anty-CSRF, a odpowiedzi HTTP zawierają podstawowe nagłówki bezpieczeństwa.
+Na tym etapie nie robimy jeszcze pełnego systemu bezpieczeństwa jak w prawdziwej aplikacji produkcyjnej.
+
+Nie zostały jeszcze wdrożone na przykład:
+- pełne logowanie użytkowników,
+- role użytkowników,
+- sprawdzanie, kto ma dostęp do danego zgłoszenia,
+- pełna polityka Content Security Policy,
+- ograniczanie liczby zapytań do API,
+- pełny zapis historii działań użytkownika.
+
+Oznacza to, że aplikacja ma już podstawowe zabezpieczenia, ale nie jest jeszcze w pełni zabezpieczonym systemem produkcyjnym.
+
+## 2. Co trzeba byłoby jeszcze poprawić w prawdziwym systemie
+
+W prawdziwym systemie najważniejsze byłoby dodanie logowania i autoryzacji.
+Obecnie użytkownik może korzystać z widoków MVC i endpointów API bez dokładnego sprawdzania jego uprawnień.
+W aplikacji produkcyjnej należałoby sprawdzać, czy użytkownik jest zalogowany oraz czy ma prawo zobaczyć, utworzyć albo zmienić dane zgłoszenie.
+
+## 3. Wniosek
+
+Brak pełnego logowania nie oznacza, że temat bezpieczeństwa jest pomijany.
+W LAB 9 skupiliśmy się na podstawach: walidacji danych, ochronie formularza przed CSRF oraz nagłówkach bezpieczeństwa.
+To są pierwsze kroki, które przygotowują aplikację do dalszego zabezpieczania w kolejnych etapach.
