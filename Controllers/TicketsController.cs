@@ -15,46 +15,16 @@ namespace UniDesc.Web.Controllers
 
         public IActionResult Index(string? status, string? sortBy, string? sortDirection, int page = 1, int pageSize = 10)
         {
-            var tickets = _ticketService.GetAllTickets().AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(status))
+            try
             {
-                if (Enum.TryParse<TicketStatus>(status, true, out var parsedStatus))
-                {
-                    tickets = tickets.Where(t => t.Status == parsedStatus);
-                }
-                else
-                {
-                    ModelState.AddModelError("Status", "Niepoprawny status.");
-                }
+                var tickets = _ticketService.GetTicketsForView(status, sortBy, sortDirection, page, pageSize);
+                return View(tickets);
             }
-
-            sortBy = sortBy?.ToLower();
-            sortDirection = sortDirection?.ToLower();
-
-            tickets = sortBy switch
+            catch (ArgumentException)
             {
-                "title" => sortDirection == "desc"
-                    ? tickets.OrderByDescending(t => t.Title)
-                    : tickets.OrderBy(t => t.Title),
-
-                "status" => sortDirection == "desc"
-                    ? tickets.OrderByDescending(t => t.Status)
-                    : tickets.OrderBy(t => t.Status),
-
-                "createdat" => sortDirection == "desc"
-                    ? tickets.OrderByDescending(t => t.CreatedAt)
-                    : tickets.OrderBy(t => t.CreatedAt),
-
-                _ => tickets.OrderBy(t => t.CreatedAt)
-            };
-
-            var result = tickets
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return View(result);
+                ModelState.AddModelError("Status", "Niepoprawny status.");
+                return View(new List<Ticket>());
+            }
         }
 
         public IActionResult Create()
@@ -78,8 +48,7 @@ namespace UniDesc.Web.Controllers
 
         public IActionResult Details(int id)
         {
-            var ticket = _ticketService.GetAllTickets()
-                .FirstOrDefault(t => t.Id == id);
+            var ticket = _ticketService.GetTicketById(id);
 
             if (ticket == null)
             {

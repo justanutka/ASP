@@ -6,3 +6,8 @@ obj/
 *.db-wal
 bin/
 obj/
+bin/
+obj/
+.vs/
+*.user
+*.suo

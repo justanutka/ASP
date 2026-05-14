@@ -1,3 +1,4 @@
+using UniDesc.Web.DTOs;
 using UniDesc.Web.Models;
 
 namespace UniDesc.Web.Services
@@ -5,9 +6,28 @@ namespace UniDesc.Web.Services
     public interface ITicketService
     {
         List<Ticket> GetAllTickets();
-        void AddTicket(Ticket ticket);
+
+        List<Ticket> GetTicketsForView(
+            string? status,
+            string? sortBy,
+            string? sortDirection,
+            int page,
+            int pageSize);
+
         Ticket? GetTicketById(int id);
+
+        Ticket AddTicket(Ticket ticket);
+
+        TicketReadDto CreateTicket(CreateTicketRequest request);
+
+        TicketReadDto UpdateTicket(int id, UpdateTicketRequest request);
+
+        List<TicketReadDto> GetAllTicketDtos();
+
+        bool DeleteTicket(int id);
+
         void UpdateTicketStatus(int id, TicketStatus status);
-        PagedResult<UniDesc.Web.DTOs.TicketListDto> GetTickets(TicketQueryParameters queryParams);
+
+        PagedResult<TicketListDto> GetTickets(TicketQueryParameters queryParams);
     }
 }

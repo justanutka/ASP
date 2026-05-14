@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using UniDesc.Web.Models;
 using UniDesc.Web.DTOs;
+using UniDesc.Web.Models;
 using UniDesc.Web.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace UniDesc.Web.Controllers
 {
@@ -10,12 +9,10 @@ namespace UniDesc.Web.Controllers
     [Route("api/tickets")]
     public class TicketsApiController : ControllerBase
     {
-        private readonly UniDeskDbContext _context;
         private readonly ITicketService _ticketService;
 
-        public TicketsApiController(UniDeskDbContext context, ITicketService ticketService)
+        public TicketsApiController(ITicketService ticketService)
         {
-            _context = context;
             _ticketService = ticketService;
         }
 
@@ -23,23 +20,16 @@ namespace UniDesc.Web.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<TicketReadDto>> GetAllTickets()
         {
-            var tickets = _context.Tickets.ToList();
+            var tickets = _ticketService.GetAllTicketDtos();
 
-            var ticketDtos = tickets.Select(t => new TicketReadDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                Status = t.Status.ToString()
-            });
-
-            return Ok(ticketDtos);
+            return Ok(tickets);
         }
 
         // GET: api/tickets/5
         [HttpGet("{id}")]
         public ActionResult<TicketReadDto> GetTicketById(int id)
         {
-            var ticket = _context.Tickets.Find(id);
+            var ticket = _ticketService.GetTicketById(id);
 
             if (ticket == null)
             {
@@ -65,37 +55,19 @@ namespace UniDesc.Web.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var parsedStatus))
-            {
-                ModelState.AddModelError(nameof(request.Status), "Invalid status value.");
-                return ValidationProblem(ModelState);
-            }
-
             try
             {
-                var ticket = new Ticket
-                {
-                    Title = request.Title,
-                    Status = parsedStatus,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                var createdTicket = _ticketService.CreateTicket(request);
 
-                _context.Tickets.Add(ticket);
-                _context.SaveChanges();
-
-                var dto = new TicketReadDto
-                {
-                    Id = ticket.Id,
-                    Title = ticket.Title,
-                    Status = ticket.Status.ToString()
-                };
-
-                return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
+                return CreatedAtAction(
+                    nameof(GetTicketById),
+                    new { id = createdTicket.Id },
+                    createdTicket);
             }
-            catch (DbUpdateException ex)
+            catch (ArgumentException ex)
             {
-                return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
+                ModelState.AddModelError(nameof(request.Status), ex.Message);
+                return ValidationProblem(ModelState);
             }
         }
 
@@ -114,32 +86,25 @@ namespace UniDesc.Web.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            try
+            var ticket = _ticketService.GetTicketById(id);
+
+            if (ticket == null)
             {
-                var ticket = _context.Tickets.Find(id);
-
-                if (ticket == null)
-                {
-                    return NotFound();
-                }
-
-                ticket.Status = parsedStatus;
-                ticket.UpdatedAt = DateTime.UtcNow;
-                _context.SaveChanges();
-
-                var dto = new TicketReadDto
-                {
-                    Id = ticket.Id,
-                    Title = ticket.Title,
-                    Status = ticket.Status.ToString()
-                };
-
-                return Ok(dto);
+                return NotFound();
             }
-            catch (DbUpdateException ex)
+
+            _ticketService.UpdateTicketStatus(id, parsedStatus);
+
+            var updatedTicket = _ticketService.GetTicketById(id);
+
+            var dto = new TicketReadDto
             {
-                return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
-            }
+                Id = updatedTicket!.Id,
+                Title = updatedTicket.Title,
+                Status = updatedTicket.Status.ToString()
+            };
+
+            return Ok(dto);
         }
 
         // GET: api/tickets/search

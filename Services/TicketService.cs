@@ -1,5 +1,6 @@
-﻿using UniDesc.Web.Models;
-using UniDesc.Web.DTOs;
+﻿using UniDesc.Web.DTOs;
+using UniDesc.Web.Exceptions;
+using UniDesc.Web.Models;
 
 namespace UniDesc.Web.Services
 {
@@ -17,10 +18,54 @@ namespace UniDesc.Web.Services
             return _context.Tickets.ToList();
         }
 
-        public void AddTicket(Ticket ticket)
+        public List<Ticket> GetTicketsForView(
+            string? status,
+            string? sortBy,
+            string? sortDirection,
+            int page,
+            int pageSize)
         {
-            _context.Tickets.Add(ticket);
-            _context.SaveChanges();
+            var tickets = _context.Tickets.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (Enum.TryParse<TicketStatus>(status, true, out var parsedStatus))
+                {
+                    tickets = tickets.Where(t => t.Status == parsedStatus);
+                }
+                else
+                {
+                    throw new ArgumentException("Niepoprawny status.");
+                }
+            }
+
+            sortBy = sortBy?.ToLower();
+            sortDirection = sortDirection?.ToLower();
+
+            tickets = sortBy switch
+            {
+                "title" => sortDirection == "desc"
+                    ? tickets.OrderByDescending(t => t.Title)
+                    : tickets.OrderBy(t => t.Title),
+
+                "status" => sortDirection == "desc"
+                    ? tickets.OrderByDescending(t => t.Status)
+                    : tickets.OrderBy(t => t.Status),
+
+                "createdat" => sortDirection == "desc"
+                    ? tickets.OrderByDescending(t => t.CreatedAt)
+                    : tickets.OrderBy(t => t.CreatedAt),
+
+                _ => tickets.OrderBy(t => t.CreatedAt)
+            };
+
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize < 1 ? 10 : pageSize;
+
+            return tickets
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
         }
 
         public Ticket? GetTicketById(int id)
@@ -28,9 +73,99 @@ namespace UniDesc.Web.Services
             return _context.Tickets.Find(id);
         }
 
+        public Ticket AddTicket(Ticket ticket)
+        {
+            _context.Tickets.Add(ticket);
+            _context.SaveChanges();
+
+            return ticket;
+        }
+
+        public TicketReadDto CreateTicket(CreateTicketRequest request)
+        {
+            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var status))
+            {
+                throw new ArgumentException($"Niepoprawna wartość statusu: {request.Status}");
+            }
+
+            var ticket = new Ticket
+            {
+                Title = request.Title,
+                Status = status,
+                Description = ""
+            };
+
+            _context.Tickets.Add(ticket);
+            _context.SaveChanges();
+
+            return new TicketReadDto
+            {
+                Id = ticket.Id,
+                Title = ticket.Title,
+                Status = ticket.Status.ToString()
+            };
+        }
+
+        public TicketReadDto UpdateTicket(int id, UpdateTicketRequest request)
+        {
+            var ticket = _context.Tickets.Find(id);
+
+            if (ticket == null)
+            {
+                throw new EntityNotFoundException($"Ticket with id {id} was not found.");
+            }
+
+            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var status))
+            {
+                throw new ArgumentException($"Niepoprawna wartość statusu: {request.Status}");
+            }
+
+            ticket.Title = request.Title;
+            ticket.Description = request.Description;
+            ticket.Status = status;
+            ticket.UpdatedAt = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            return new TicketReadDto
+            {
+                Id = ticket.Id,
+                Title = ticket.Title,
+                Status = ticket.Status.ToString()
+            };
+        }
+
+        public List<TicketReadDto> GetAllTicketDtos()
+        {
+            return _context.Tickets
+                .Select(t => new TicketReadDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Status = t.Status.ToString()
+                })
+                .ToList();
+        }
+
+        public bool DeleteTicket(int id)
+        {
+            var ticket = _context.Tickets.Find(id);
+
+            if (ticket == null)
+            {
+                throw new EntityNotFoundException($"Ticket with id {id} was not found.");
+            }
+
+            _context.Tickets.Remove(ticket);
+            _context.SaveChanges();
+
+            return true;
+        }
+
         public void UpdateTicketStatus(int id, TicketStatus status)
         {
             var ticket = _context.Tickets.Find(id);
+
             if (ticket != null)
             {
                 ticket.Status = status;

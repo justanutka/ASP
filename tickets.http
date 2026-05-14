@@ -1,4 +1,4 @@
-@baseUrl = https://localhost:54618
+@baseUrl = http://localhost:54619
 
 ### Get all tickets
 GET {{baseUrl}}/api/tickets
@@ -90,3 +90,52 @@ Content-Type: application/x-www-form-urlencoded
 Accept: text/html
 
 Title=CSRF%20test&Description=Request%20without%20token&Status=New
+
+### GET v2 tickets
+GET {{baseUrl}}/api/v2/tickets
+Accept: application/json
+
+
+### POST v2 ticket
+POST {{baseUrl}}/api/v2/tickets
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Lab 10 stretch ticket",
+  "status": "New"
+}
+
+
+### PUT v2 ticket - valid
+PUT {{baseUrl}}/api/v2/tickets/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Updated ticket from STRETCH",
+  "description": "Updated through Minimal API PUT",
+  "status": "InProgress"
+}
+
+
+### PUT v2 ticket -  return 404 
+PUT {{baseUrl}}/api/v2/tickets/9999
+Content-Type: application/json
+Accept: application/problem+json
+
+{
+  "title": "Missing ticket",
+  "description": "This ticket does not exist",
+  "status": "Closed"
+}
+
+
+### DELETE v2 ticket
+DELETE {{baseUrl}}/api/v2/tickets/3
+Accept: application/json
+
+
+### DELETE v2 ticket -  return 404 
+DELETE {{baseUrl}}/api/v2/tickets/9999
+Accept: application/problem+json
