@@ -1,9 +1,29 @@
-### Get all tickets
-GET http://localhost:5000/api/tickets
+@baseUrl = http://localhost:54619
+
+### GET v2 tickets
+GET {{baseUrl}}/api/v2/tickets
 Accept: application/json
 
-### Create valid ticket
-POST http://localhost:5000/api/tickets
+### POST v2 ticket
+POST {{baseUrl}}/api/v2/tickets
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Lab 10 ticket",
+  "status": "New"
+}
+
+### DELETE v2 ticket
+DELETE {{baseUrl}}/api/v2/tickets/1
+Accept: application/json
+
+### GET v1 tickets
+GET {{baseUrl}}/api/tickets
+Accept: application/json
+
+### POST v1 ticket
+POST {{baseUrl}}/api/tickets
 Content-Type: application/json
 Accept: application/json
 
@@ -12,38 +32,11 @@ Accept: application/json
   "status": "New"
 }
 
-### Get ticket by id
-GET http://localhost:5000/api/tickets/1
-Accept: application/json
-
-### Update status
-PATCH http://localhost:5000/api/tickets/1/status
+### PATCH v1 ticket status
+PATCH {{baseUrl}}/api/tickets/1/status
 Content-Type: application/json
 Accept: application/json
 
 {
   "status": "Closed"
-}
-
-### Get missing ticket
-GET http://localhost:5000/api/tickets/99999
-Accept: application/json
-
-### Create invalid ticket
-POST http://localhost:5000/api/tickets
-Content-Type: application/json
-Accept: application/json
-
-{
-  "title": "",
-  "status": ""
-}
-
-### Update status with invalid value
-PATCH http://localhost:5000/api/tickets/1/status
-Content-Type: application/json
-Accept: application/json
-
-{
-  "status": ""
 }

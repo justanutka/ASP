@@ -24,9 +24,9 @@ namespace UniDesc.Web.Controllers
                 PageSize = pageSize
             };
 
-            var result = _ticketService.GetTickets(queryParams);
+            var tickets = _ticketService.GetTicketsForView(queryParams);
 
-            return View(result.Items);
+            return View(tickets);
         }
 
         public IActionResult Create()
@@ -49,8 +49,7 @@ namespace UniDesc.Web.Controllers
 
         public IActionResult Details(int id)
         {
-            var ticket = _ticketService.GetAllTickets()
-                .FirstOrDefault(t => t.Id == id);
+            var ticket = _ticketService.GetTicketById(id);
 
             if (ticket == null)
             {

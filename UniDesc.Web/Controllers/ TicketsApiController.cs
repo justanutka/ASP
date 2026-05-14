@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using UniDesc.Web.Models;
 using UniDesc.Web.DTOs;
+using UniDesc.Web.Models;
 using UniDesc.Web.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace UniDesc.Web.Controllers
 {
@@ -11,12 +10,10 @@ namespace UniDesc.Web.Controllers
     [Tags("Tickets")]
     public class TicketsApiController : ControllerBase
     {
-        private readonly UniDeskDbContext _context;
         private readonly ITicketService _ticketService;
 
-        public TicketsApiController(UniDeskDbContext context, ITicketService ticketService)
+        public TicketsApiController(ITicketService ticketService)
         {
-            _context = context;
             _ticketService = ticketService;
         }
 
@@ -25,16 +22,7 @@ namespace UniDesc.Web.Controllers
         [ProducesResponseType(typeof(IEnumerable<TicketReadDto>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<TicketReadDto>> GetAllTickets()
         {
-            var tickets = _context.Tickets.ToList();
-
-            var ticketDtos = tickets.Select(t => new TicketReadDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                Status = t.Status.ToString()
-            });
-
-            return Ok(ticketDtos);
+            return Ok(_ticketService.GetTicketSummaries());
         }
 
         // GET: api/tickets/5
@@ -43,21 +31,13 @@ namespace UniDesc.Web.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<TicketReadDto> GetTicketById(int id)
         {
-            var ticket = _context.Tickets.Find(id);
-
+            var ticket = _ticketService.GetTicketReadById(id);
             if (ticket == null)
             {
                 return NotFound();
             }
 
-            var ticketDto = new TicketReadDto
-            {
-                Id = ticket.Id,
-                Title = ticket.Title,
-                Status = ticket.Status.ToString()
-            };
-
-            return Ok(ticketDto);
+            return Ok(ticket);
         }
 
         // POST: api/tickets
@@ -71,43 +51,22 @@ namespace UniDesc.Web.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var parsedStatus))
-            {
-                ModelState.AddModelError(nameof(request.Status), "Invalid status value.");
-                return ValidationProblem(ModelState);
-            }
-
             try
             {
-                var ticket = new Ticket
-                {
-                    Title = request.Title,
-                    Status = parsedStatus,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                _context.Tickets.Add(ticket);
-                _context.SaveChanges();
-
-                var dto = new TicketReadDto
-                {
-                    Id = ticket.Id,
-                    Title = ticket.Title,
-                    Status = ticket.Status.ToString()
-                };
+                var dto = _ticketService.CreateTicket(request);
 
                 return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
             }
-            catch (DbUpdateException ex)
+            catch (ArgumentException ex)
             {
-                return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
+                ModelState.AddModelError(nameof(request.Status), ex.Message);
+                return ValidationProblem(ModelState);
             }
         }
 
         // PATCH: api/tickets/{id}/status
         [HttpPatch("{id}/status")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(TicketReadDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateTicketStatus(int id, [FromBody] UpdateTicketStatusRequest request)
@@ -117,36 +76,20 @@ namespace UniDesc.Web.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            if (string.IsNullOrWhiteSpace(request.Status))
-            {
-                ModelState.AddModelError(nameof(request.Status), "Status is required.");
-                return ValidationProblem(ModelState);
-            }
-
-            if (!Enum.TryParse<TicketStatus>(request.Status, true, out var parsedStatus))
-            {
-                ModelState.AddModelError(nameof(request.Status), "Invalid status value.");
-                return ValidationProblem(ModelState);
-            }
-
             try
             {
-                var ticket = _context.Tickets.Find(id);
-
+                var ticket = _ticketService.UpdateTicketStatus(id, request.Status);
                 if (ticket == null)
                 {
                     return NotFound();
                 }
 
-                ticket.Status = parsedStatus;
-                ticket.UpdatedAt = DateTime.UtcNow;
-                _context.SaveChanges();
-
-                return NoContent();
+                return Ok(ticket);
             }
-            catch (DbUpdateException ex)
+            catch (ArgumentException ex)
             {
-                return StatusCode(500, $"An error occurred while saving the data: {ex.Message}");
+                ModelState.AddModelError(nameof(request.Status), ex.Message);
+                return ValidationProblem(ModelState);
             }
         }
 
