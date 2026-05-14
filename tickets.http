@@ -139,3 +139,30 @@ Accept: application/json
 ### DELETE v2 ticket -  return 404 
 DELETE {{baseUrl}}/api/v2/tickets/9999
 Accept: application/problem+json
+
+### POST v2 invalid empty model should return 400 
+POST {{baseUrl}}/api/v2/tickets
+Content-Type: application/json
+Accept: application/problem+json
+
+{
+  "title": "",
+  "status": ""
+}
+
+
+### PUT v2 invalid empty model should return 400 
+PUT {{baseUrl}}/api/v2/tickets/1
+Content-Type: application/json
+Accept: application/problem+json
+
+{
+  "title": "",
+  "description": "Invalid update",
+  "status": ""
+}
+
+
+### check timing filter logs
+GET {{baseUrl}}/api/v2/tickets
+Accept: application/json
