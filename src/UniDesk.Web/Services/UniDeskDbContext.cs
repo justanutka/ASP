@@ -5,7 +5,7 @@ using UniDesk.Web.Models;
 
 namespace UniDesk.Web
 {
-    public class UniDeskDbContext : IdentityDbContext<IdentityUser>
+    public class UniDeskDbContext : IdentityDbContext<ApplicationUser>
     {
         public UniDeskDbContext(DbContextOptions<UniDeskDbContext> options)
             : base(options)

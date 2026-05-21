@@ -68,6 +68,10 @@ namespace UniDesk.Web.Endpoints
 
                 return Results.NoContent();
             })
+            .RequireAuthorization(policy =>
+            {
+                policy.RequireRole(IdentitySeedData.AdminRole);
+            })
             .WithName("DeleteV2Ticket")
             .WithOpenApi();
 

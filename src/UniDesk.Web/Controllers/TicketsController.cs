@@ -104,5 +104,22 @@ namespace UniDesk.Web.Controllers
 
             return RedirectToAction(nameof(Details), new { id });
         }
+
+        [HttpPost]
+        [Authorize(Roles = IdentitySeedData.AdminRole)]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            var ticket = _ticketService.GetTicketById(id);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            _ticketService.DeleteTicket(id);
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -54,3 +54,16 @@
         <button class="btn btn-secondary w-100" type="submit">Zapisz status</button>
     </div>
 </form>
+
+@if (User.IsInRole(UniDesk.Web.Services.IdentitySeedData.AdminRole))
+{
+    <form asp-action="Delete" method="post" class="mt-4"
+          onsubmit="return confirm('Czy na pewno chcesz usunac to zgloszenie?');">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+
+        <button type="submit" class="btn btn-danger">
+            Usun zgloszenie
+        </button>
+    </form>
+}

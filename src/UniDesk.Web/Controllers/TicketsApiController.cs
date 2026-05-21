@@ -123,5 +123,22 @@ namespace UniDesk.Web.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // DELETE: api/tickets/5
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = IdentitySeedData.AdminRole)]
+        public IActionResult DeleteTicket(int id)
+        {
+            var ticket = _ticketService.GetTicketById(id);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            _ticketService.DeleteTicket(id);
+
+            return NoContent();
+        }
     }
 }
