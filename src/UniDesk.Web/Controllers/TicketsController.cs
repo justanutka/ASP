@@ -2,9 +2,11 @@ using UniDesk.Web.Models;
 using UniDesk.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace UniDesk.Web.Controllers
 {
+    [Authorize]
     public class TicketsController : Controller
     {
         private readonly ITicketService _ticketService;

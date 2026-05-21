@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using UniDesk.Web.DTOs;
 using UniDesk.Web.Models;
 using UniDesk.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace UniDesk.Web.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/tickets")]
     public class TicketsApiController : ControllerBase
     {

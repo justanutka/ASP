@@ -10,6 +10,7 @@ namespace UniDesk.Web.Endpoints
         {
             var ticketsApi = app.MapGroup("/api/v2/tickets")
                 .WithTags("Tickets v2")
+                .RequireAuthorization()
                 .AddEndpointFilter<RequestTimingFilter>();
 
             ticketsApi.MapGet("/", (ITicketService ticketService) =>

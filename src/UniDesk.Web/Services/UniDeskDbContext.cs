@@ -1,21 +1,24 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using UniDesk.Web.Models;
 
 namespace UniDesk.Web
 {
-	public class UniDeskDbContext : DbContext
-	{
-		public UniDeskDbContext(DbContextOptions<UniDeskDbContext> options)
-			: base(options)
-		{
-		}
+    public class UniDeskDbContext : IdentityDbContext<IdentityUser>
+    {
+        public UniDeskDbContext(DbContextOptions<UniDeskDbContext> options)
+            : base(options)
+        {
+        }
 
-		public required  DbSet<Ticket> Tickets { get; set; }
+        public required DbSet<Ticket> Tickets { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            //Fluent API for Ticket
+            // Fluent API for Ticket
             modelBuilder.Entity<Ticket>()
                 .Property(t => t.Title)
                 .IsRequired()
@@ -59,6 +62,5 @@ namespace UniDesk.Web
 
             return base.SaveChanges();
         }
-
     }
 }
