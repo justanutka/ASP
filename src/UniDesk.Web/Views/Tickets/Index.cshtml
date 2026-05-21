@@ -87,10 +87,20 @@
         {
             foreach (var ticket in Model)
             {
+                var statusClass = ticket.Status switch
+                {
+                    TicketStatus.New => "text-bg-primary",
+                    TicketStatus.InProgress => "text-bg-warning",
+                    TicketStatus.Closed => "text-bg-success",
+                    _ => "text-bg-secondary"
+                };
+
                 <tr>
                     <td>@ticket.Title</td>
                     <td>@ticket.Description</td>
-                    <td>@ticket.Status</td>
+                    <td>
+                        <span class="badge @statusClass">@ticket.Status</span>
+                    </td>
                     <td>@ticket.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
                     <td>
                         <a asp-action="Details" asp-route-id="@ticket.Id">Szczegoly</a>

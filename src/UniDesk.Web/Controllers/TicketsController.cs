@@ -1,6 +1,7 @@
 using UniDesk.Web.Models;
 using UniDesk.Web.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace UniDesk.Web.Controllers
 {
@@ -47,7 +48,15 @@ namespace UniDesk.Web.Controllers
                 return View(ticket);
             }
 
-            _ticketService.AddTicket(ticket);
+            try
+            {
+                _ticketService.AddTicket(ticket);
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie mozna zapisac zgloszenia. Sprawdz dane i sprobuj ponownie.");
+                return View(ticket);
+            }
 
             return RedirectToAction("Index");
         }
@@ -62,6 +71,36 @@ namespace UniDesk.Web.Controllers
             }
 
             return View(ticket);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateStatus(int id, string status)
+        {
+            var ticket = _ticketService.GetTicketById(id);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            if (!Enum.TryParse<TicketStatus>(status, true, out var parsedStatus))
+            {
+                ModelState.AddModelError("Status", "Niepoprawny status.");
+                return View("Details", ticket);
+            }
+
+            try
+            {
+                _ticketService.UpdateTicketStatus(id, parsedStatus);
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie mozna zaktualizowac statusu. Sprobuj ponownie.");
+                return View("Details", ticket);
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
         }
     }
 }
