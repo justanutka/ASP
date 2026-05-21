@@ -93,6 +93,22 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("TopUniEmailOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+
+        policy.RequireAssertion(context =>
+        {
+            var email = context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                        ?? context.User.Identity?.Name;
+
+            return email != null && email.EndsWith("@top-uni.edu.pl", StringComparison.OrdinalIgnoreCase);
+        });
+    });
+});
+
 var app = builder.Build();
 
 if (!app.Environment.IsEnvironment("Testing"))

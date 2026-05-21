@@ -1,6 +1,7 @@
 using UniDesk.Web.DTOs;
 using UniDesk.Web.Filters;
 using UniDesk.Web.Services;
+using System.Security.Claims;
 
 namespace UniDesk.Web.Endpoints
 {
@@ -12,6 +13,23 @@ namespace UniDesk.Web.Endpoints
                 .WithTags("Tickets v2")
                 .RequireAuthorization()
                 .AddEndpointFilter<RequestTimingFilter>();
+
+            ticketsApi.MapGet("/current-user", (ClaimsPrincipal user) =>
+            {
+                var email = user.FindFirst(ClaimTypes.Email)?.Value ?? user.Identity?.Name;
+                var employeeId = user.FindFirst(IdentitySeedData.EmployeeIdClaimType)?.Value;
+
+                return Results.Ok(new
+                {
+                    email,
+                    employeeId,
+                    isAuthenticated = user.Identity?.IsAuthenticated == true,
+                    isAdmin = user.IsInRole(IdentitySeedData.AdminRole)
+                });
+            })
+            .RequireAuthorization("TopUniEmailOnly")
+            .WithName("GetCurrentUserV2")
+            .WithOpenApi();
 
             ticketsApi.MapGet("/", (ITicketService ticketService) =>
             {
