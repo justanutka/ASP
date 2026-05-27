@@ -2,7 +2,7 @@
 
 UniDesk to aplikacja ASP.NET Core MVC/API do obsługi zgłoszeń. Repozytorium jest uporządkowane jako jedno rozwiązanie Visual Studio z trzema projektami:
 
-- `src/UniDesk.Web` - aplikacja webowa MVC, API, Minimal API, EF Core i SQLite.
+- `UniDesk.Web` - aplikacja webowa MVC, API, Minimal API, EF Core i SQLite.
 - `tests/UniDesk.UnitTests` - testy jednostkowe modelu oraz logiki serwisowej.
 - `tests/UniDesk.IntegrationTests` - testy integracyjne endpointów HTTP uruchamiane in-memory.
 
@@ -17,10 +17,10 @@ UniDesk to aplikacja ASP.NET Core MVC/API do obsługi zgłoszeń. Repozytorium j
 
 ```bash
 dotnet build UniDesk.sln
-dotnet run --project src/UniDesk.Web/UniDesk.Web.csproj
+dotnet run --project UniDesk.Web/UniDesk.Web.csproj
 ```
 
-Po uruchomieniu aplikacja korzysta z adresów z `src/UniDesk.Web/Properties/launchSettings.json`.
+Po uruchomieniu aplikacja korzysta z adresów z `UniDesk.Web/Properties/launchSettings.json`.
 
 ## Testy
 

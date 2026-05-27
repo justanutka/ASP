@@ -7,10 +7,12 @@ namespace UniDesk.Web.Services
     public class TicketService : ITicketService
     {
         private readonly UniDeskDbContext _context;
+        private readonly ILogger<TicketService> _logger;
 
-        public TicketService(UniDeskDbContext context)
+        public TicketService(UniDeskDbContext context, ILogger<TicketService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public List<Ticket> GetAllTickets()
@@ -84,6 +86,14 @@ namespace UniDesk.Web.Services
             _context.Tickets.Add(ticket);
             _context.SaveChanges();
 
+            _logger.LogInformation(
+                "Ticket {TicketId} created with title {TicketTitle}, status {TicketStatus}, operation {Operation}, module {Module}",
+                ticket.Id,
+                ticket.Title,
+                ticket.Status.ToString(),
+                "CreateTicket",
+                "Tickets");
+
             return ticket;
         }
 
@@ -103,6 +113,14 @@ namespace UniDesk.Web.Services
 
             _context.Tickets.Add(ticket);
             _context.SaveChanges();
+
+            _logger.LogInformation(
+                "Ticket {TicketId} created with title {TicketTitle}, status {TicketStatus}, operation {Operation}, module {Module}",
+                ticket.Id,
+                ticket.Title,
+                ticket.Status.ToString(),
+                "CreateTicket",
+                "Tickets");
 
             return new TicketReadDto
             {

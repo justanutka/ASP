@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\UniDesk.Web\UniDesk.Web.csproj" />
+    <ProjectReference Include="..\..\UniDesk.Web\UniDesk.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,17 +1,33 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Json;
 using UniDesk.Web;
 using UniDesk.Web.Endpoints;
 using UniDesk.Web.Exceptions;
 using UniDesk.Web.Models;
 using UniDesk.Web.Services;
 
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        formatter: new JsonFormatter(renderMessage: true),
+        path: "Logs/unidesk-log-.json",
+        rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+builder.Host.UseSerilog();
 
 builder.Services.AddControllersWithViews();
 
@@ -42,9 +58,17 @@ if (!Path.IsPathRooted(connectionBuilder.DataSource))
 
 builder.Services.AddDbContext<UniDeskDbContext>(options =>
 {
-    options.UseSqlite(connectionString)
-        .LogTo(Console.WriteLine, LogLevel.Information);
+    options.UseSqlite(connectionString);
 });
+
+builder.Services.AddHealthChecks()
+    .AddCheck(
+        name: "application",
+        check: () => HealthCheckResult.Healthy("Application is running"),
+        tags: new[] { "live", "ready" })
+    .AddDbContextCheck<UniDeskDbContext>(
+        name: "database",
+        tags: new[] { "ready" });
 
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -124,17 +148,17 @@ if (!app.Environment.IsEnvironment("Testing"))
         if (!dbContext.Tickets.Any())
         {
             dbContext.Tickets.AddRange(
-                new UniDesk.Web.Models.Ticket
+                new Ticket
                 {
                     Title = "Pierwsze zgloszenie",
                     Description = "Przykladowe zgloszenie startowe",
-                    Status = UniDesk.Web.Models.TicketStatus.New
+                    Status = TicketStatus.New
                 },
-                new UniDesk.Web.Models.Ticket
+                new Ticket
                 {
                     Title = "Drugie zgloszenie",
                     Description = "Zgloszenie w toku",
-                    Status = UniDesk.Web.Models.TicketStatus.InProgress
+                    Status = TicketStatus.InProgress
                 });
 
             dbContext.SaveChanges();
@@ -154,6 +178,66 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (EntityNotFoundException ex)
+    {
+        Log.Warning(
+            ex,
+            "Entity not found during request {Method} {Path}",
+            context.Request.Method,
+            context.Request.Path.Value);
+
+        if (!context.Response.HasStarted)
+        {
+            var problem = new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Entity not found",
+                Detail = ex.Message,
+                Instance = context.Request.Path
+            };
+
+            context.Response.Clear();
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            context.Response.ContentType = "application/problem+json";
+
+            await context.Response.WriteAsJsonAsync(problem);
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error(
+            ex,
+            "Unhandled exception during request {Method} {Path}",
+            context.Request.Method,
+            context.Request.Path.Value);
+
+        if (!context.Response.HasStarted)
+        {
+            var problem = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Internal server error",
+                Detail = "Wystapil nieoczekiwany blad aplikacji.",
+                Instance = context.Request.Path
+            };
+
+            context.Response.Clear();
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/problem+json";
+
+            await context.Response.WriteAsJsonAsync(problem);
+        }
+    }
+});
+
+app.UseSerilogRequestLogging();
+
 app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
@@ -164,7 +248,6 @@ if (app.Environment.IsDevelopment())
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
@@ -175,29 +258,16 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseExceptionHandler();
-
-app.Use(async (context, next) =>
+app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    try
-    {
-        await next();
-    }
-    catch (EntityNotFoundException ex)
-    {
-        var problem = new ProblemDetails
-        {
-            Status = StatusCodes.Status404NotFound,
-            Title = "Entity not found",
-            Detail = ex.Message,
-            Instance = context.Request.Path
-        };
+    Predicate = check => check.Tags.Contains("live"),
+    ResponseWriter = WriteHealthResponse
+});
 
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-        context.Response.ContentType = "application/problem+json";
-
-        await context.Response.WriteAsJsonAsync(problem);
-    }
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = WriteHealthResponse
 });
 
 app.MapControllers();
@@ -209,6 +279,28 @@ app.MapControllerRoute(
 app.MapTicketEndpoints();
 
 app.Run();
+
+Log.CloseAndFlush();
+
+static Task WriteHealthResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+
+    var response = new
+    {
+        status = report.Status.ToString(),
+        totalDuration = report.TotalDuration.ToString(),
+        checks = report.Entries.Select(entry => new
+        {
+            name = entry.Key,
+            status = entry.Value.Status.ToString(),
+            description = entry.Value.Description,
+            duration = entry.Value.Duration.ToString()
+        })
+    };
+
+    return context.Response.WriteAsJsonAsync(response);
+}
 
 public partial class Program
 {
