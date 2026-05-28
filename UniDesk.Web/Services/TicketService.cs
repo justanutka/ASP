@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UniDesk.Web.DTOs;
 using UniDesk.Web.Exceptions;
 using UniDesk.Web.Models;
@@ -6,6 +7,8 @@ namespace UniDesk.Web.Services
 {
     public class TicketService : ITicketService
     {
+        private const long SlowOperationThresholdMs = 10;
+
         private readonly UniDeskDbContext _context;
         private readonly ILogger<TicketService> _logger;
 
@@ -83,16 +86,26 @@ namespace UniDesk.Web.Services
 
         public Ticket AddTicket(Ticket ticket)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             _context.Tickets.Add(ticket);
             _context.SaveChanges();
 
+            stopwatch.Stop();
+
             _logger.LogInformation(
-                "Ticket {TicketId} created with title {TicketTitle}, status {TicketStatus}, operation {Operation}, module {Module}",
+                "Ticket {TicketId} created with title {TicketTitle}, status {TicketStatus}, operation {Operation}, module {Module}, elapsed {ElapsedMilliseconds} ms",
                 ticket.Id,
                 ticket.Title,
                 ticket.Status.ToString(),
                 "CreateTicket",
-                "Tickets");
+                "Tickets",
+                stopwatch.ElapsedMilliseconds);
+
+            LogSlowOperationIfNeeded(
+                operation: "CreateTicket",
+                ticketId: ticket.Id,
+                elapsedMilliseconds: stopwatch.ElapsedMilliseconds);
 
             return ticket;
         }
@@ -104,6 +117,8 @@ namespace UniDesk.Web.Services
                 throw new ArgumentException($"Niepoprawna wartosc statusu: {request.Status}");
             }
 
+            var stopwatch = Stopwatch.StartNew();
+
             var ticket = new Ticket
             {
                 Title = request.Title,
@@ -114,13 +129,21 @@ namespace UniDesk.Web.Services
             _context.Tickets.Add(ticket);
             _context.SaveChanges();
 
+            stopwatch.Stop();
+
             _logger.LogInformation(
-                "Ticket {TicketId} created with title {TicketTitle}, status {TicketStatus}, operation {Operation}, module {Module}",
+                "Ticket {TicketId} created with title {TicketTitle}, status {TicketStatus}, operation {Operation}, module {Module}, elapsed {ElapsedMilliseconds} ms",
                 ticket.Id,
                 ticket.Title,
                 ticket.Status.ToString(),
                 "CreateTicket",
-                "Tickets");
+                "Tickets",
+                stopwatch.ElapsedMilliseconds);
+
+            LogSlowOperationIfNeeded(
+                operation: "CreateTicket",
+                ticketId: ticket.Id,
+                elapsedMilliseconds: stopwatch.ElapsedMilliseconds);
 
             return new TicketReadDto
             {
@@ -132,6 +155,8 @@ namespace UniDesk.Web.Services
 
         public TicketReadDto UpdateTicket(int id, UpdateTicketRequest request)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             var ticket = _context.Tickets.Find(id);
 
             if (ticket == null)
@@ -150,6 +175,21 @@ namespace UniDesk.Web.Services
             ticket.UpdatedAt = DateTime.UtcNow;
 
             _context.SaveChanges();
+
+            stopwatch.Stop();
+
+            _logger.LogInformation(
+                "Ticket {TicketId} updated with status {TicketStatus}, operation {Operation}, module {Module}, elapsed {ElapsedMilliseconds} ms",
+                ticket.Id,
+                ticket.Status.ToString(),
+                "UpdateTicket",
+                "Tickets",
+                stopwatch.ElapsedMilliseconds);
+
+            LogSlowOperationIfNeeded(
+                operation: "UpdateTicket",
+                ticketId: ticket.Id,
+                elapsedMilliseconds: stopwatch.ElapsedMilliseconds);
 
             return new TicketReadDto
             {
@@ -173,6 +213,8 @@ namespace UniDesk.Web.Services
 
         public bool DeleteTicket(int id)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             var ticket = _context.Tickets.Find(id);
 
             if (ticket == null)
@@ -183,11 +225,27 @@ namespace UniDesk.Web.Services
             _context.Tickets.Remove(ticket);
             _context.SaveChanges();
 
+            stopwatch.Stop();
+
+            _logger.LogInformation(
+                "Ticket {TicketId} deleted, operation {Operation}, module {Module}, elapsed {ElapsedMilliseconds} ms",
+                ticket.Id,
+                "DeleteTicket",
+                "Tickets",
+                stopwatch.ElapsedMilliseconds);
+
+            LogSlowOperationIfNeeded(
+                operation: "DeleteTicket",
+                ticketId: ticket.Id,
+                elapsedMilliseconds: stopwatch.ElapsedMilliseconds);
+
             return true;
         }
 
         public void UpdateTicketStatus(int id, TicketStatus status)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             var ticket = _context.Tickets.Find(id);
 
             if (ticket != null)
@@ -195,11 +253,28 @@ namespace UniDesk.Web.Services
                 ticket.Status = status;
                 ticket.UpdatedAt = DateTime.UtcNow;
                 _context.SaveChanges();
+
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "Ticket {TicketId} changed status to {TicketStatus}, operation {Operation}, module {Module}, elapsed {ElapsedMilliseconds} ms",
+                    ticket.Id,
+                    ticket.Status.ToString(),
+                    "UpdateTicketStatus",
+                    "Tickets",
+                    stopwatch.ElapsedMilliseconds);
+
+                LogSlowOperationIfNeeded(
+                    operation: "UpdateTicketStatus",
+                    ticketId: ticket.Id,
+                    elapsedMilliseconds: stopwatch.ElapsedMilliseconds);
             }
         }
 
         public PagedResult<TicketListDto> GetTickets(TicketQueryParameters queryParams)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             var query = _context.Tickets.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(queryParams.Status))
@@ -266,11 +341,48 @@ namespace UniDesk.Web.Services
                 })
                 .ToList();
 
+            stopwatch.Stop();
+
+            _logger.LogInformation(
+                "Tickets list loaded, operation {Operation}, module {Module}, totalCount {TotalCount}, page {Page}, pageSize {PageSize}, elapsed {ElapsedMilliseconds} ms",
+                "GetTickets",
+                "Tickets",
+                totalCount,
+                page,
+                pageSize,
+                stopwatch.ElapsedMilliseconds);
+
+            if (stopwatch.ElapsedMilliseconds > SlowOperationThresholdMs)
+            {
+                _logger.LogWarning(
+                    "Slow operation detected for {Operation} in module {Module}. Elapsed {ElapsedMilliseconds} ms, threshold {ThresholdMilliseconds} ms",
+                    "GetTickets",
+                    "Tickets",
+                    stopwatch.ElapsedMilliseconds,
+                    SlowOperationThresholdMs);
+            }
+
             return new PagedResult<TicketListDto>
             {
                 TotalCount = totalCount,
                 Items = items
             };
+        }
+
+        private void LogSlowOperationIfNeeded(string operation, int ticketId, long elapsedMilliseconds)
+        {
+            if (elapsedMilliseconds <= SlowOperationThresholdMs)
+            {
+                return;
+            }
+
+            _logger.LogWarning(
+                "Slow operation detected for {Operation} in module {Module}. TicketId {TicketId}, elapsed {ElapsedMilliseconds} ms, threshold {ThresholdMilliseconds} ms",
+                operation,
+                "Tickets",
+                ticketId,
+                elapsedMilliseconds,
+                SlowOperationThresholdMs);
         }
     }
 }

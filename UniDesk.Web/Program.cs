@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
+using Serilog.Context;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using UniDesk.Web;
@@ -13,11 +14,17 @@ using UniDesk.Web.Exceptions;
 using UniDesk.Web.Models;
 using UniDesk.Web.Services;
 
+var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .Enrich.WithProperty("Application", "UniDesk")
+    .Enrich.WithProperty("Environment", environmentName)
     .WriteTo.Console()
     .WriteTo.File(
         formatter: new JsonFormatter(renderMessage: true),
@@ -180,6 +187,25 @@ app.Use(async (context, next) =>
 
 app.Use(async (context, next) =>
 {
+    const string correlationIdHeader = "X-Correlation-Id";
+
+    var correlationId = context.Request.Headers.TryGetValue(correlationIdHeader, out var headerValue)
+                        && !string.IsNullOrWhiteSpace(headerValue.ToString())
+        ? headerValue.ToString()
+        : Guid.NewGuid().ToString("N");
+
+    context.TraceIdentifier = correlationId;
+    context.Response.Headers[correlationIdHeader] = correlationId;
+
+    using (LogContext.PushProperty("CorrelationId", correlationId))
+    using (LogContext.PushProperty("RequestPath", context.Request.Path.Value))
+    {
+        await next();
+    }
+});
+
+app.Use(async (context, next) =>
+{
     try
     {
         await next();
@@ -236,7 +262,17 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(options =>
+{
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier);
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("RequestMethod", httpContext.Request.Method);
+        diagnosticContext.Set("RequestPath", httpContext.Request.Path.Value);
+    };
+});
 
 app.UseStaticFiles();
 
@@ -289,13 +325,18 @@ static Task WriteHealthResponse(HttpContext context, HealthReport report)
     var response = new
     {
         status = report.Status.ToString(),
+        checkedAtUtc = DateTime.UtcNow,
         totalDuration = report.TotalDuration.ToString(),
+        totalDurationMs = report.TotalDuration.TotalMilliseconds,
         checks = report.Entries.Select(entry => new
         {
             name = entry.Key,
             status = entry.Value.Status.ToString(),
             description = entry.Value.Description,
-            duration = entry.Value.Duration.ToString()
+            duration = entry.Value.Duration.ToString(),
+            durationMs = entry.Value.Duration.TotalMilliseconds,
+            tags = entry.Value.Tags,
+            error = entry.Value.Exception?.Message
         })
     };
 
